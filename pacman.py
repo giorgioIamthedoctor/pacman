@@ -10,6 +10,9 @@ def init_window():
     pygame.display.set_mode((512, 512))
     pygame.display.set_caption('Packman')
 
+mapping = open("/home/student/pacman/map","r")
+loading = mapping.readlines()
+map = [x.split(" ") for x in loading]
 
 def draw_background(scr, img=None):
     if img:
@@ -19,7 +22,6 @@ def draw_background(scr, img=None):
         bg.fill((0, 0, 0))
         scr.blit(bg, (0, 0))
 
-
 class GameObject(pygame.sprite.Sprite):
     def __init__(self, img, x, y, tile_size, map_size):
         pygame.sprite.Sprite.__init__(self)
@@ -28,17 +30,22 @@ class GameObject(pygame.sprite.Sprite):
         self.x = 0
         self.y = 0
         self.tick = 0
+        self.type = ""
         self.tile_size = tile_size
         self.map_size = map_size
-        self.set_coord(x, y)
+        self.set_coord(x, y,self.type)
 
-    def set_coord(self, x, y):
+    def set_coord(self, x, y,type):
         self.x = x
         self.y = y
+        self.set_changes(self.x,self.y,type)
         self.screen_rect = Rect(floor(x) * self.tile_size, floor(y) * self.tile_size, self.tile_size, self.tile_size )
 
     def game_tick(self):
         self.tick += 1
+
+    def set_changes(self,x,y,type):
+                map[int(x)][int(y)] = type
 
     def draw(self, scr):
         scr.blit(self.image, (self.screen_rect.x, self.screen_rect.y))
@@ -49,6 +56,7 @@ class Ghost(GameObject):
         GameObject.__init__(self, './resources/ghost.png', x, y, tile_size, map_size)
         self.direction = 0
         self.velocity = 4.0 / 10.0
+        self.type = "&"
 
     def game_tick(self):
         super(Ghost, self).game_tick()
@@ -75,14 +83,14 @@ class Ghost(GameObject):
             if self.y <= 0:
                 self.y = 0
                 self.direction = random.randint(1, 4)
-        self.set_coord(self.x, self.y)
-
+        self.set_coord(self.x, self.y,self.type)
 
 class Pacman(GameObject):
     def __init__(self, x, y, tile_size, map_size):
         GameObject.__init__(self, './resources/pacman.png', x, y, tile_size, map_size)
         self.direction = 0
         self.velocity = 4.0 / 10.0
+        self.type = "*"
 
     def game_tick(self):
         super(Pacman, self).game_tick()
@@ -103,8 +111,26 @@ class Pacman(GameObject):
             if self.y <= 0:
                 self.y = 0
 
-        self.set_coord(self.x, self.y)
+        self.set_coord(self.x, self.y,self.type)
 
+class Map:
+        def __init__(self, w=16, h=16):
+            image = pygame.image.load("./resources/wall.jpg")
+            for x in range()
+            build_walls(image,)
+        def get(self, x, y):
+                return self.map[x][y]
+
+        def moveTo(self, obj, new_x, new_y):
+                point = self.map[obj.x][obj.y]
+                if obj in point:
+                        point.remove(obj)
+                        self.map[new_x][new_y].add(obj)
+                        obj.set_ccord(x,y)
+                        return true
+                return false
+        def build_walls(image,x,y):
+            scr.blit(image, (x, y))
 
 def process_events(events, packman):
     for event in events:
