@@ -62,25 +62,8 @@ class Ghost(GameObject):
         self.lx = self.x
         self.ly = self.y
         super(Ghost, self).game_tick(num)
-        if "*" in map[int(self.y)]:
-            print("yes")
-            if self.x > map[int(self.y)].index("*"):
-                print("verx")
-                self.direction = 4
-            elif self.x < map[int(self.y)].index("*"):
-                print("niz")
-                self.direction = 2
-        elif "*" in map[int(self.x)]:
-            if self.x > map[int(self.x)].index("*"):
-                print("sprava")
-                self.direction = 3
-            elif self.x < map[int(self.x)].index("*"):
-                print("sleva")
-                self.direction = 1
-        else:
-            if self.tick % 20 == 0 or self.direction == 0:
-                self.direction = random.randint(1, 4)
-
+        if self.tick % 20 == 0 or self.direction == 0:
+            self.direction = random.randint(1, 4)
         if self.direction == 1:
             self.x += self.velocity
             if self.x >= self.map_size-1:
