@@ -10,9 +10,12 @@ def init_window():
     pygame.display.set_mode((512, 512))
     pygame.display.set_caption('Pacman')
 
-mapping = open("/home/student/pacman/map","r")
+mapping = open("./map","r")
 loading = list((mapping.read()).split("\n"))
 map = [x.split(" ") for x in loading]
+num_pechen = 0
+for i in range(len(map)):
+        num_pechen += map[i].count("+")
 
 def draw_background(scr, img=None):
     if img:
@@ -55,7 +58,7 @@ class Ghost(GameObject):
     def __init__(self, x, y, tile_size, map_size):
         GameObject.__init__(self, './resources/ghost.png', x, y, tile_size, map_size)
         self.direction = 0
-        self.velocity = 4.0 / 10.0
+        self.velocity = 8.0 / 10.0
 
     def game_tick(self,num):
         type = "@"
@@ -87,14 +90,87 @@ class Ghost(GameObject):
         if map[int(self.x)][int(self.y)] == '.':
                 self.x = self.lx
                 self.y = self.ly
+        if map[int(self.x)][int(self.y)] == '*':
+            sys.exit(0)
         self.set_coord(self.x, self.y,type,self.lx,self.ly)
 
+class GhostS(GameObject):
+    def __init__(self, x, y, tile_size, map_size):
+        GameObject.__init__(self, './resources/ghost.png', x, y, tile_size, map_size)
+        self.direction = 0
+        self.velocity = 3.0 / 10.0
+    def game_tick(self,num):
+        type = "@"
+        self.lx = self.x
+        self.ly = self.y
+        super(GhostS, self).game_tick(num)
+        if (max(self.x - pacman.x,pacman.x - self.x)+max(self.y - pacman.y,pacman.y - self.y))<= 8 and self.not_wall(self.x,self.y,pacman.x,pacman.y):
+            print("yes")
+            if max(self.x - pacman.x,pacman.x - self.x) >= max(self.y - pacman.y,pacman.y - self.y):
+                if self.x > pacman.x:
+                    self.direction = 3
+                else:
+                    self.direction = 1
+            else:
+                if self.y > pacman.y:
+                    self.direction = 4
+                else:
+                    self.direction = 2
+        else:
+            if self.tick % 20 == 0 or self.direction == 0:
+                self.direction = random.randint(1, 4)
+        if self.direction == 1:
+            self.x += self.velocity
+            if self.x >= self.map_size-1:
+                self.x = self.map_size-1
+                self.direction = random.randint(1, 4)
+        elif self.direction == 2:
+            self.y += self.velocity
+            if self.y >= self.map_size-1:
+                self.y = self.map_size-1
+                self.direction = random.randint(1, 4)
+        elif self.direction == 3:
+            self.x -= self.velocity
+            if self.x <= 0:
+                self.x = 0
+                self.direction = random.randint(1, 4)
+        elif self.direction == 4:
+            self.y -= self.velocity
+            if self.y <= 0:
+                self.y = 0
+                self.direction = random.randint(1, 4)
+        if map[int(self.x)][int(self.y)] == '.':
+                self.x = self.lx
+                self.y = self.ly
+        if map[int(self.x)][int(self.y)] == '*':
+            sys.exit(0)
+        self.set_coord(self.x, self.y,type,self.lx,self.ly)
+    def not_wall(self,x,y,xc,yc):
+        if max(x-xc,xc-x) >= max(y-yc,yc-y):
+            for i in range(int(min(x,xc)+1),int(max(x,xc))):
+                for j in range(int(min(y,yc)),int(max(y,yc)+1)):
+                    print(map[i][j])
+                    if map[i][j] != ".":
+                        break
+                else:
+                    return False
+            else:
+                return True
+        else:
+            for i in range(int(min(y,yc)+1),int(max(y,yc))):
+                for j in range(int(min(x,xc)),int(max(x,xc)+1)):
+                    print(map[j][i])
+                    if map[j][i] != ".":
+                        break
+                else:
+                    return False
+            else:
+                return True
 
 class Pacman(GameObject):
     def __init__(self, x, y, tile_size, map_size):
         GameObject.__init__(self, './resources/pacman.png', x, y, tile_size, map_size)
         self.direction = 0
-        self.velocity = 4.0 / 10.0
 
     def game_tick(self,num):
         self.type = "*"
@@ -122,7 +198,7 @@ class Pacman(GameObject):
                 self.x = self.lx
                 self.y = self.ly
         if map[int(self.x)][int(self.y)] == '@':
-            print("You looser")
+            sys.exit(0)
         self.set_coord(self.x, self.y,self.type,self.lx,self.ly)
 
 class Wall(GameObject):
@@ -147,25 +223,24 @@ class Pechen(GameObject):
         if map[int(self.x)][int(self.y)] == "*":
             self.idie(self.type,self.x,self.y,self.number)
     def idie(self,type,x,y,num):
-        if type == "+":
-            map[x][y] = "0"
-            pechenky[num] = None
-        elif type == "^":
-            map[x][y] = "0"
-            pechenky[num] = None
-            Pacman.velocity = 8.0/10.0
+        map[x][y] = "0"
+        pechenky[num] = None
 
-class Pechenextra(Pechen):
+class Pechenextra(GameObject):
     def __init__(self, x, y, tile_size, map_size):
-         GameObject.__init__(self, './resources/food.bmp', x, y, tile_size, map_size)
-         self.direction = 0
-         self.velocity = 0
+        GameObject.__init__(self, './resources/food.bmp', x, y, tile_size, map_size)
+        self.direction = 0
+        self.velocity = 0
     def game_tick(self,num):
-         self.type = "^"
-         super(Pechenextra, self).game_tick(num)
-         self.number = num
-         if map[int(self.x)][int(self.y)] == '*':
-             self.idie(self.type,self.x,self.y,self.number)
+        self.type = "+"
+        self.number = num
+        super(Pechenextra, self).game_tick(num)
+        if map[int(self.x)][int(self.y)] == "*":
+            self.idie(self.type,self.x,self.y,self.number)
+    def idie(self,type,x,y,num):
+        map[x][y] = "0"
+        pechenky[num] = None
+        Pacman.velocity = 0.7
 
 def process_events(events, packman):
     for event in events:
@@ -190,11 +265,14 @@ if __name__ == '__main__':
     map_size = 16
     screen = pygame.display.get_surface()
     ghost = Ghost(9, 9, tile_size, map_size)
+    ghosts = GhostS(8, 5, tile_size, map_size)
     pacman = Pacman(0, 0, tile_size, map_size)
+    Pacman.velocity = 0.4
     pechenky = [None for i in range(10)]
     walls = [None for i in range(16*16)]
     n = 0
     np = 0
+    num_pechen = 0
     for m in range(len(map)):
         for k in range(len(map[m])):
             if map[m][k] == '.':
@@ -212,13 +290,22 @@ if __name__ == '__main__':
     background = pygame.image.load("./resources/background.png")
 
     while 1:
+        i = len(pechenky) - 1
+        while pechenky[i] == None and i >= 0:
+            i -= 1
+            if pechenky[i] != None:
+                break
+        else:
+            sys.exit(0)
         process_events(pygame.event.get(), pacman)
         pygame.time.delay(100)
         ghost.game_tick(0)
+        ghosts.game_tick(0)
         pacman.game_tick(0)
         draw_background(screen, background)
         pacman.draw(screen)
         ghost.draw(screen)
+        ghosts.draw(screen)
         for i in range(len(walls)):
             if walls[i]:
                 walls[i].draw(screen)
