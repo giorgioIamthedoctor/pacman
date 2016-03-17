@@ -46,8 +46,9 @@ class GameObject(pygame.sprite.Sprite):
                 map[int(m)][int(k)] = "0"
         self.screen_rect = Rect(floor(x) * self.tile_size, floor(y) * self.tile_size, self.tile_size, self.tile_size )
 
-    def game_tick(self,num):
+    def game_tick(self,num,img):
         self.number = num
+        self.image = pygame.image.load(img)
         self.tick += 1
 
     def draw(self, scr):
@@ -56,142 +57,216 @@ class GameObject(pygame.sprite.Sprite):
 
 class Ghost(GameObject):
     def __init__(self, x, y, tile_size, map_size):
-        GameObject.__init__(self, './resources/ghost.png', x, y, tile_size, map_size)
+        GameObject.__init__(self, './resources/ghost_right.png', x, y, tile_size, map_size)
         self.direction = 0
         self.velocity = 8.0 / 10.0
+        self.img = "./resources/ghost_right.png"
 
     def game_tick(self,num):
         type = "@"
         self.lx = self.x
         self.ly = self.y
-        super(Ghost, self).game_tick(num)
+        super(Ghost, self).game_tick(num,self.img)
         if self.tick % 20 == 0 or self.direction == 0:
             self.direction = random.randint(1, 4)
         if self.direction == 1:
             self.x += self.velocity
+            self.img = "./resources/ghost_right.png"
             if self.x >= self.map_size-1:
                 self.x = self.map_size-1
                 self.direction = random.randint(1, 4)
         elif self.direction == 2:
             self.y += self.velocity
+            self.img = "./resources/ghost_down.png"
             if self.y >= self.map_size-1:
                 self.y = self.map_size-1
                 self.direction = random.randint(1, 4)
         elif self.direction == 3:
             self.x -= self.velocity
+            self.img = "./resources/ghost_left.png"
             if self.x <= 0:
                 self.x = 0
                 self.direction = random.randint(1, 4)
         elif self.direction == 4:
             self.y -= self.velocity
+            self.img = "./resources/ghost_up.png"
             if self.y <= 0:
                 self.y = 0
                 self.direction = random.randint(1, 4)
         if map[int(self.x)][int(self.y)] == '.':
                 self.x = self.lx
                 self.y = self.ly
+        self.set_coord(self.x, self.y,type,self.lx,self.ly)
         if map[int(self.x)][int(self.y)] == '*':
             sys.exit(0)
-        self.set_coord(self.x, self.y,type,self.lx,self.ly)
 
 class GhostS(GameObject):
     def __init__(self, x, y, tile_size, map_size):
-        GameObject.__init__(self, './resources/ghost.png', x, y, tile_size, map_size)
+        GameObject.__init__(self, './resources/ghost_right.png', x, y, tile_size, map_size)
         self.direction = 0
-        self.velocity = 3.0 / 10.0
+        self.velocity = 4.0 / 10.0
+        self.img = "./resources/ghost_right.png"
     def game_tick(self,num):
         type = "@"
         self.lx = self.x
         self.ly = self.y
-        super(GhostS, self).game_tick(num)
+        super(GhostS, self).game_tick(num,self.img)
         if (max(self.x - pacman.x,pacman.x - self.x)+max(self.y - pacman.y,pacman.y - self.y))<= 8 and self.not_wall(self.x,self.y,pacman.x,pacman.y):
-            print("yes")
             if max(self.x - pacman.x,pacman.x - self.x) >= max(self.y - pacman.y,pacman.y - self.y):
                 if self.x > pacman.x:
                     self.direction = 3
+                    self.img = "./resources/ghost_left.png"
                 else:
                     self.direction = 1
+                    self.img = "./resources/ghost_right.png"
             else:
                 if self.y > pacman.y:
                     self.direction = 4
+                    self.img = "./resources/ghost_up.png"
                 else:
                     self.direction = 2
+                    self.img = "./resources/ghost_down.png"
+
         else:
             if self.tick % 20 == 0 or self.direction == 0:
                 self.direction = random.randint(1, 4)
-        if self.direction == 1:
+        if self.direction == 1 and map[min(15,max(0,int(self.x + 1)))][int(self.y)] == "." and (map[min(15,max(0,int(self.x + 1)))][min(15,max(0,int(self.y)+1))]=="0" or map[min(15,max(0,int(self.x + 1)))][min(15,max(0,int(self.y)-1))]):
+                if map[min(15,max(0,int(self.x + 1)))][min(15,max(0,int(self.y)+1))]=="0":
+                    self.direction = 2
+                    self.y += self.velocity
+                    self.img = "./resources/ghost_down.png"
+                    if self.y >= self.map_size-1:
+                        self.y = self.map_size-1
+                    print(1,2)
+                else:
+                    self.direction = 4
+                    self.y -= self.velocity
+                    self.img = "./resources/ghost_up.png"
+                    if self.y <= 0:
+                        self.y = 0
+                    print(1,4)
+        elif self.direction == 3 and map[min(15,max(0,int(self.x - 1)))][int(self.y)] == "." and (map[min(15,max(0,int(self.x - 1)))][min(15,max(0,int(self.y)+1))]=="0" or map[min(15,max(0,int(self.x - 1)))][min(15,max(0,int(self.y)-1))]):
+                if map[min(15,max(0,int(self.x - 1)))][min(15,max(0,int(self.y)+1))]=="0":
+                    self.direction = 2
+                    self.y += self.velocity
+                    self.img = "./resources/ghost_down.png"
+                    if self.y >= self.map_size-1:
+                        self.y = self.map_size-1
+                    print(3,2)
+                else:
+                    self.direction = 4
+                    self.y -= self.velocity
+                    self.img = "./resources/ghost_up.png"
+                    if self.y <= 0:
+                        self.y = 0
+                    print(3,4)
+        elif self.direction == 2 and map[int(self.x)][min(15,max(0,int(self.y+1)))] == "." and (map[min(15,max(0,int(self.x + 1)))][min(15,max(0,int(self.y)+1))]=="0" or map[min(15,max(0,int(self.x - 1)))][min(15,max(0,int(self.y)+1))]):
+                if map[min(15,max(0,int(self.x + 1)))][min(15,max(0,int(self.y)+1))]=="0":
+                    self.direction = 1
+                    self.x += self.velocity
+                    self.img = "./resources/ghost_right.png"
+                    if self.x >= self.map_size-1:
+                        self.x = self.map_size-1
+                    print(2,1)
+                else:
+                    self.direction = 3
+                    self.x -= self.velocity
+                    self.img = "./resources/ghost_left.png"
+                    if self.x <= 0:
+                        self.x = 0
+                    print(2,3)
+        elif self.direction == 4 and map[int(self.x)][min(15,max(0,int(self.y)-1))] == "." and (map[min(15,max(0,int(self.x + 1)))][min(15,max(0,int(self.y)-1))]=="0" or map[min(15,max(0,int(self.x - 1)))][min(15,max(0,int(self.y)-1))]):
+                if map[min(15,max(0,int(self.x + 1)))][min(15,max(0,int(self.y)-1))]=="0":
+                    self.direction = 1
+                    self.x += self.velocity
+                    self.img = "./resources/ghost_right.png"
+                    if self.x >= self.map_size-1:
+                        self.x = self.map_size-1
+                    print(4,1)
+                else:
+                    self.direction = 3
+                    self.x -= self.velocity
+                    self.img = "./resources/ghost_left.png"
+                    if self.x <= 0:
+                        self.x = 0
+                    print(4,3)
+        elif self.direction == 1:
             self.x += self.velocity
+            self.img = "./resources/ghost_right.png"
             if self.x >= self.map_size-1:
                 self.x = self.map_size-1
-                self.direction = random.randint(1, 4)
         elif self.direction == 2:
             self.y += self.velocity
+            self.img = "./resources/ghost_down.png"
             if self.y >= self.map_size-1:
                 self.y = self.map_size-1
-                self.direction = random.randint(1, 4)
         elif self.direction == 3:
             self.x -= self.velocity
+            self.img = "./resources/ghost_left.png"
             if self.x <= 0:
                 self.x = 0
-                self.direction = random.randint(1, 4)
         elif self.direction == 4:
             self.y -= self.velocity
+            self.img = "./resources/ghost_up.png"
             if self.y <= 0:
                 self.y = 0
-                self.direction = random.randint(1, 4)
         if map[int(self.x)][int(self.y)] == '.':
                 self.x = self.lx
                 self.y = self.ly
+        self.set_coord(self.x, self.y,type,self.lx,self.ly)
         if map[int(self.x)][int(self.y)] == '*':
             sys.exit(0)
-        self.set_coord(self.x, self.y,type,self.lx,self.ly)
     def not_wall(self,x,y,xc,yc):
-        if max(x-xc,xc-x) >= max(y-yc,yc-y):
-            for i in range(int(min(x,xc)+1),int(max(x,xc))):
-                for j in range(int(min(y,yc)),int(max(y,yc)+1)):
-                    print(map[i][j])
-                    if map[i][j] != ".":
-                        break
-                else:
-                    return False
+        self.flag = False
+        for i in range(int(min(x,xc)+1),int(max(x,xc))):
+            for j in range(int(min(y,yc)),int(min(y,yc)+ 1 + round(min(20,max(y-yc,yc-y)/max(x-xc,xc-x))))):
+                if map[i][j] != ".":
+                    break
             else:
-                return True
+                return False
         else:
-            for i in range(int(min(y,yc)+1),int(max(y,yc))):
-                for j in range(int(min(x,xc)),int(max(x,xc)+1)):
-                    print(map[j][i])
-                    if map[j][i] != ".":
-                        break
-                else:
-                    return False
+            self.flag = True
+        for i in range(int(min(y,yc)+1),int(max(y,yc))):
+            for j in range(int(min(x,xc)),int(max(x,xc)+ 1 + round(min(20,max(x-xc,xc-x)/max(y-yc,yc-y))))):
+                if map[j][i] != ".":
+                    break
             else:
-                return True
+                return False
+        else:
+            self.flag = True
+        return self.flag
 
 class Pacman(GameObject):
     def __init__(self, x, y, tile_size, map_size):
         GameObject.__init__(self, './resources/pacman.png', x, y, tile_size, map_size)
         self.direction = 0
+        self.img = "./resources/pacman.png"
+        self.num_min = 1
 
     def game_tick(self,num):
         self.type = "*"
         self.lx = self.x
         self.ly = self.y
-        super(Pacman, self).game_tick(num)
+        super(Pacman, self).game_tick(num,self.img)
         if self.direction == 1:
+            self.img = "./resources/pacman.png"
             self.x += self.velocity
             if self.x >= self.map_size-1:
                 self.x = self.map_size-1
 
         elif self.direction == 2:
             self.y += self.velocity
+            self.img = "./resources/pacmand.png"
             if self.y >= self.map_size-1:
                 self.y = self.map_size-1
         elif self.direction == 3:
             self.x -= self.velocity
+            self.img = "./resources/pacmanl.png"
             if self.x <= 0:
                 self.x = 0
         elif self.direction == 4:
             self.y -= self.velocity
+            self.img = "./resources/pacmanu.png"
             if self.y <= 0:
                 self.y = 0
         if map[int(self.x)][int(self.y)] == '.':
@@ -206,20 +281,22 @@ class Wall(GameObject):
         GameObject.__init__(self, './resources/wall.png', x, y, tile_size, map_size)
         self.direction = 0
         self.velocity = 0
+        self.img = './resources/wall.png'
 
     def game_tick(self):
         self.type = "."
-        super(Wall, self).game_tick(num)
+        super(Wall, self).game_tick(num,self.img)
 
 class Pechen(GameObject):
     def __init__(self, x, y, tile_size, map_size):
         GameObject.__init__(self, './resources/food.bmp', x, y, tile_size, map_size)
         self.direction = 0
         self.velocity = 0
+        self.img = './resources/food.bmp'
     def game_tick(self,num):
         self.type = "+"
         self.number = num
-        super(Pechen, self).game_tick(num)
+        super(Pechen, self).game_tick(num,self.img)
         if map[int(self.x)][int(self.y)] == "*":
             self.idie(self.type,self.x,self.y,self.number)
     def idie(self,type,x,y,num):
@@ -228,13 +305,14 @@ class Pechen(GameObject):
 
 class Pechenextra(GameObject):
     def __init__(self, x, y, tile_size, map_size):
-        GameObject.__init__(self, './resources/food.bmp', x, y, tile_size, map_size)
+        GameObject.__init__(self, './resources/extra_food.png', x, y, tile_size, map_size)
         self.direction = 0
         self.velocity = 0
+        self.img = './resources/extra_food.png'
     def game_tick(self,num):
         self.type = "+"
         self.number = num
-        super(Pechenextra, self).game_tick(num)
+        super(Pechenextra, self).game_tick(num,self.img)
         if map[int(self.x)][int(self.y)] == "*":
             self.idie(self.type,self.x,self.y,self.number)
     def idie(self,type,x,y,num):
@@ -257,7 +335,6 @@ def process_events(events, packman):
                 packman.direction = 2
             elif event.key == K_SPACE:
                 packman.direction = 0
-
 
 if __name__ == '__main__':
     init_window()
@@ -303,9 +380,6 @@ if __name__ == '__main__':
         ghosts.game_tick(0)
         pacman.game_tick(0)
         draw_background(screen, background)
-        pacman.draw(screen)
-        ghost.draw(screen)
-        ghosts.draw(screen)
         for i in range(len(walls)):
             if walls[i]:
                 walls[i].draw(screen)
@@ -313,4 +387,7 @@ if __name__ == '__main__':
             if pechenky[i]:
                 pechenky[i].draw(screen)
                 pechenky[i].game_tick(i)
+        pacman.draw(screen)
+        ghost.draw(screen)
+        ghosts.draw(screen)
         pygame.display.update()
