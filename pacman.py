@@ -40,9 +40,9 @@ class GameObject(pygame.sprite.Sprite):
     def set_coord(self, x, y,type,m,k):
         self.x = x
         self.y = y
-        if map[int(x)][int(y)] != ".":
+        if map[int(x)][int(y)] != "." and map[int(x)][int(y)] != "?":
             map[int(x)][int(y)] = type
-            if type != "." and type != "+" and type != "^":
+            if type != "." and type != "+" and type != "^" and map[int(m)][int(k)] != "?":
                 map[int(m)][int(k)] = "0"
         self.screen_rect = Rect(floor(x) * self.tile_size, floor(y) * self.tile_size, self.tile_size, self.tile_size )
 
@@ -111,7 +111,7 @@ class GhostS(GameObject):
         self.lx = self.x
         self.ly = self.y
         super(GhostS, self).game_tick(num,self.img)
-        if (max(self.x - pacman.x,pacman.x - self.x)+max(self.y - pacman.y,pacman.y - self.y))<= 8 and self.not_wall(self.x,self.y,pacman.x,pacman.y):
+        if (max(self.x - pacman.x,pacman.x - self.x)+max(self.y - pacman.y,pacman.y - self.y))<= self.range and self.not_wall(self.x,self.y,pacman.x,pacman.y):
             if max(self.x - pacman.x,pacman.x - self.x) >= max(self.y - pacman.y,pacman.y - self.y):
                 if self.x > pacman.x:
                     self.direction = 3
@@ -137,14 +137,12 @@ class GhostS(GameObject):
                     self.img = "./resources/ghost_down.png"
                     if self.y >= self.map_size-1:
                         self.y = self.map_size-1
-                    print(1,2)
                 else:
                     self.direction = 4
                     self.y -= self.velocity
                     self.img = "./resources/ghost_up.png"
                     if self.y <= 0:
                         self.y = 0
-                    print(1,4)
         elif self.direction == 3 and map[min(15,max(0,int(self.x - 1)))][int(self.y)] == "." and (map[min(15,max(0,int(self.x - 1)))][min(15,max(0,int(self.y)+1))]=="0" or map[min(15,max(0,int(self.x - 1)))][min(15,max(0,int(self.y)-1))]):
                 if map[min(15,max(0,int(self.x - 1)))][min(15,max(0,int(self.y)+1))]=="0":
                     self.direction = 2
@@ -152,14 +150,12 @@ class GhostS(GameObject):
                     self.img = "./resources/ghost_down.png"
                     if self.y >= self.map_size-1:
                         self.y = self.map_size-1
-                    print(3,2)
                 else:
                     self.direction = 4
                     self.y -= self.velocity
                     self.img = "./resources/ghost_up.png"
                     if self.y <= 0:
                         self.y = 0
-                    print(3,4)
         elif self.direction == 2 and map[int(self.x)][min(15,max(0,int(self.y+1)))] == "." and (map[min(15,max(0,int(self.x + 1)))][min(15,max(0,int(self.y)+1))]=="0" or map[min(15,max(0,int(self.x - 1)))][min(15,max(0,int(self.y)+1))]):
                 if map[min(15,max(0,int(self.x + 1)))][min(15,max(0,int(self.y)+1))]=="0":
                     self.direction = 1
@@ -167,14 +163,12 @@ class GhostS(GameObject):
                     self.img = "./resources/ghost_right.png"
                     if self.x >= self.map_size-1:
                         self.x = self.map_size-1
-                    print(2,1)
                 else:
                     self.direction = 3
                     self.x -= self.velocity
                     self.img = "./resources/ghost_left.png"
                     if self.x <= 0:
                         self.x = 0
-                    print(2,3)
         elif self.direction == 4 and map[int(self.x)][min(15,max(0,int(self.y)-1))] == "." and (map[min(15,max(0,int(self.x + 1)))][min(15,max(0,int(self.y)-1))]=="0" or map[min(15,max(0,int(self.x - 1)))][min(15,max(0,int(self.y)-1))]):
                 if map[min(15,max(0,int(self.x + 1)))][min(15,max(0,int(self.y)-1))]=="0":
                     self.direction = 1
@@ -182,14 +176,12 @@ class GhostS(GameObject):
                     self.img = "./resources/ghost_right.png"
                     if self.x >= self.map_size-1:
                         self.x = self.map_size-1
-                    print(4,1)
                 else:
                     self.direction = 3
                     self.x -= self.velocity
                     self.img = "./resources/ghost_left.png"
                     if self.x <= 0:
                         self.x = 0
-                    print(4,3)
         elif self.direction == 1:
             self.x += self.velocity
             self.img = "./resources/ghost_right.png"
@@ -219,7 +211,7 @@ class GhostS(GameObject):
     def not_wall(self,x,y,xc,yc):
         self.flag = False
         for i in range(int(min(x,xc)+1),int(max(x,xc))):
-            for j in range(int(min(y,yc)),int(min(y,yc)+ 1 + round(min(20,max(y-yc,yc-y)/max(x-xc,xc-x))))):
+            for j in range(int(min(y,yc)),int(min(y,yc)+ 1 + round(min(14,max(y-yc,yc-y)/max(x-xc,xc-x))))):
                 if map[i][j] != ".":
                     break
             else:
@@ -227,7 +219,7 @@ class GhostS(GameObject):
         else:
             self.flag = True
         for i in range(int(min(y,yc)+1),int(max(y,yc))):
-            for j in range(int(min(x,xc)),int(max(x,xc)+ 1 + round(min(20,max(x-xc,xc-x)/max(y-yc,yc-y))))):
+            for j in range(int(min(x,xc)),int(max(x,xc)+ 1 + round(min(14,max(x-xc,xc-x)/max(y-yc,yc-y))))):
                 if map[j][i] != ".":
                     break
             else:
@@ -287,6 +279,17 @@ class Wall(GameObject):
         self.type = "."
         super(Wall, self).game_tick(num,self.img)
 
+class Portal(GameObject):
+    def __init__(self, x, y, tile_size, map_size):
+        GameObject.__init__(self, './resources/portal.png', x, y, tile_size, map_size)
+        self.direction = 0
+        self.velocity = 0
+        self.img = './resources/wall.png'
+
+    def game_tick(self):
+        self.type = "?"
+        super(Portal, self).game_tick(num,self.img)
+
 class Pechen(GameObject):
     def __init__(self, x, y, tile_size, map_size):
         GameObject.__init__(self, './resources/food.bmp', x, y, tile_size, map_size)
@@ -340,11 +343,14 @@ if __name__ == '__main__':
     init_window()
     tile_size = 32
     map_size = 16
+    flager = False
     screen = pygame.display.get_surface()
     ghost = Ghost(9, 9, tile_size, map_size)
     ghosts = GhostS(8, 5, tile_size, map_size)
+    ghosts.range = 8
     pacman = Pacman(0, 0, tile_size, map_size)
-    Pacman.velocity = 0.4
+    Pacman.velocity = 0.5
+    portal = None
     pechenky = [None for i in range(10)]
     walls = [None for i in range(16*16)]
     n = 0
@@ -364,8 +370,11 @@ if __name__ == '__main__':
                 np += 1
                 x = Pechenextra(m,k, tile_size, map_size)
                 pechenky[np] = x
+            elif map[m][k] == "?":
+                x = Portal(m,k,tile_size, map_size)
+                portal = x
+                map[m][k] = "?"
     background = pygame.image.load("./resources/background.png")
-
     while 1:
         i = len(pechenky) - 1
         while pechenky[i] == None and i >= 0:
@@ -373,13 +382,22 @@ if __name__ == '__main__':
             if pechenky[i] != None:
                 break
         else:
-            sys.exit(0)
+           flager = True
+        if flager:
+            if map[int(pacman.x)][int(pacman.y)] != "?":
+                ghosts.velocity = 0.8
+                ghosts.range = 14
+                ghost.velocity = 1
+            else:
+                print("You win!!!")
+                sys.exit(0)
         process_events(pygame.event.get(), pacman)
         pygame.time.delay(100)
         ghost.game_tick(0)
         ghosts.game_tick(0)
         pacman.game_tick(0)
         draw_background(screen, background)
+        portal.draw(screen)
         for i in range(len(walls)):
             if walls[i]:
                 walls[i].draw(screen)
